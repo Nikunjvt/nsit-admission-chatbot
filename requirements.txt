@@ -1,5 +1,6 @@
 streamlit
 pdfplumber
 sentence-transformers
-chromadb
+faiss-cpu
 groq
+numpy
