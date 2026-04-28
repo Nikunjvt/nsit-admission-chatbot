@@ -194,6 +194,7 @@ for key, val in {
     "metas": None,
     "indexed": False,
     "chunk_count": 0,
+    "api_key": "",
 }.items():
     if key not in st.session_state:
         st.session_state[key] = val
@@ -239,6 +240,7 @@ with st.sidebar:
                     st.session_state.indexed      = True
                     st.session_state.chunk_count  = count
                     st.session_state.messages     = []
+                    st.session_state.api_key      = api_key  # ← save key in session
                     st.success(f"✅ Indexed {count} chunks from {len(uploaded_files)} PDF(s)!")
                 else:
                     st.error("❌ Could not extract text from PDFs.")
@@ -305,7 +307,7 @@ else:
                 sources = ""
             else:
                 context = "\n\n".join([r[0] for r in results])
-                answer  = ask_groq(context, prompt, api_key)
+                answer  = ask_groq(context, prompt, st.session_state.api_key)
                 sources = ", ".join(
                     set(f"{r[1]['source']} (p.{r[1]['page']})" for r in results[:3])
                 )
