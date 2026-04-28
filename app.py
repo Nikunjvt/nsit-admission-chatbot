@@ -160,7 +160,7 @@ def build_index(files, embedder):
     return index, all_chunks, all_metas, len(all_chunks)
 
 # ── Retrieval ─────────────────────────────────────────────────────────────────
-def retrieve(query, index, chunks, metas, embedder, top_k=5):
+def retrieve(query, index, chunks, metas, embedder, top_k=3):
     q_emb = embedder.encode([query], show_progress_bar=False)
     q_emb = np.array(q_emb, dtype="float32")
     faiss.normalize_L2(q_emb)
@@ -174,6 +174,7 @@ def retrieve(query, index, chunks, metas, embedder, top_k=5):
 # ── Groq call ─────────────────────────────────────────────────────────────────
 def ask_groq(context, question, api_key):
     client = groq.Groq(api_key=api_key)
+    context = context[:2500]  # Trim to avoid token limit errors
     prompt = SYSTEM_PROMPT.format(context=context)
     response = client.chat.completions.create(
         model="llama3-8b-8192",
@@ -182,7 +183,7 @@ def ask_groq(context, question, api_key):
             {"role": "user",   "content": question}
         ],
         temperature=0.1,
-        max_tokens=600,
+        max_tokens=400,
     )
     return response.choices[0].message.content.strip()
 
