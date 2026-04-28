@@ -63,7 +63,7 @@ def build_tfidf(chunks):
     df = Counter()
     tokenized = []
     for chunk in chunks:
-        tokens = set(tokenize(chunk))
+        tokens = set(tokenize(chunk[0]))
         tokenized.append(tokens)
         for t in tokens:
             df[t] += 1
