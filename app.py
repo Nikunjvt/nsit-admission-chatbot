@@ -112,7 +112,7 @@ def ask_groq(context, question, api_key):
         msg = "Answer ONLY from this context. If not found, say NOT_IN_DOCS. Context: " + ctx + " Q: " + q
         client = groq.Groq(api_key=api_key)
         resp = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": msg}],
             temperature=0.0,
             max_tokens=200,
