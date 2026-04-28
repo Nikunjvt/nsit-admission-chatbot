@@ -103,19 +103,10 @@ CONTACT_INFO = """
 - 🕐 Timings: Mon–Sat, 9:00 AM – 5:00 PM
 """
 
-SYSTEM_PROMPT = """You are the official Admission Assistant for Narnarayan Shastri Institute of Technology (NSIT).
+SYSTEM_PROMPT = """You are NSIT Admission Assistant. Answer ONLY from the context below. If answer not in context, reply: NOT_IN_DOCS
 
-STRICT RULES — follow without exception:
-1. Answer ONLY using the context provided below from official NSIT documents.
-2. Do NOT use any outside knowledge, assumptions, or general information.
-3. If the answer is NOT found in the context, respond EXACTLY with the word: NOT_IN_DOCS
-4. Be concise, polite, and professional.
-5. Never make up eligibility criteria, fees, dates, or any numbers.
-
-Context from NSIT official documents:
-{context}
-
-Answer the student's question strictly based on the above context only."""
+Context:
+{context}"""
 
 # ── Model loader ──────────────────────────────────────────────────────────────
 @st.cache_resource
@@ -131,7 +122,7 @@ def extract_chunks(uploaded_file):
             if not text:
                 continue
             words = text.split()
-            size, overlap = 80, 15
+            size, overlap = 50, 10
             for i in range(0, len(words), size - overlap):
                 chunk = " ".join(words[i:i + size]).strip()
                 if len(chunk) > 30:
@@ -160,7 +151,7 @@ def build_index(files, embedder):
     return index, all_chunks, all_metas, len(all_chunks)
 
 # ── Retrieval ─────────────────────────────────────────────────────────────────
-def retrieve(query, index, chunks, metas, embedder, top_k=3):
+def retrieve(query, index, chunks, metas, embedder, top_k=2):
     q_emb = embedder.encode([query], show_progress_bar=False)
     q_emb = np.array(q_emb, dtype="float32")
     faiss.normalize_L2(q_emb)
@@ -174,16 +165,17 @@ def retrieve(query, index, chunks, metas, embedder, top_k=3):
 # ── Groq call ─────────────────────────────────────────────────────────────────
 def ask_groq(context, question, api_key):
     client = groq.Groq(api_key=api_key)
-    context = context[:2500]  # Trim to avoid token limit errors
+    context = context[:1200]  # strict trim
     prompt = SYSTEM_PROMPT.format(context=context)
     response = client.chat.completions.create(
         model="llama3-8b-8192",
         messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user",   "content": question}
+            {"role": "user", "content": prompt + "
+
+Question: " + question}
         ],
         temperature=0.1,
-        max_tokens=400,
+        max_tokens=300,
     )
     return response.choices[0].message.content.strip()
 
