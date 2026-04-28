@@ -106,21 +106,20 @@ def extract_chunks(uploaded_file):
 # GROQ CALL  — kept minimal and safe
 # ─────────────────────────────────────────────────────────────────────────────
 def ask_groq(context, question, api_key):
-    context = context[:800]   # hard cap — well within token limits
-    msg = (
-        "You are an admission assistant for Narnarayan Shastri Institute of Technology. "
-        "Use ONLY the context below to answer. "
-        "If the answer is not in the context write: NOT_IN_DOCS\n\n"
-        "Context: " + context + "\n\nQuestion: " + question
-    )
-    client = groq.Groq(api_key=api_key)
-    resp = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[{"role": "user", "content": msg}],
-        temperature=0.0,
-        max_tokens=250,
-    )
-    return resp.choices[0].message.content.strip()
+    try:
+        ctx = context[:500]
+        q   = question[:150]
+        msg = "Answer ONLY from this context. If not found, say NOT_IN_DOCS. Context: " + ctx + " Q: " + q
+        client = groq.Groq(api_key=api_key)
+        resp = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": msg}],
+            temperature=0.0,
+            max_tokens=200,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        return "ERROR: " + str(e)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SESSION STATE
